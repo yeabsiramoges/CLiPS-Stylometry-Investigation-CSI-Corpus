@@ -8,7 +8,13 @@ from constants import *
 from deep_translator import GoogleTranslator
 
 class Translator():
+    '''
+    Using the GoogleTranslator deep_translator module to quickly generate translation from a given source language to a target one.
+    '''
     def __init__(self, source, target) -> None:
+        '''
+        Instantiate deep translator.
+        '''
         print(f'Translator Instance Instantiated.')
         print(f'Source: {source}')
         print(f'Target: {target}')
@@ -16,6 +22,9 @@ class Translator():
         self.translator = GoogleTranslator(source=source, target=target)
 
     def get_translation(self, text):
+        '''
+        Process translation of text passed in.
+        '''
         try:
             translation = []
             for sentence in nltk.tokenize.sent_tokenize(text):
@@ -26,26 +35,47 @@ class Translator():
             return ""
 
 class FileProcessor():
+    '''
+    Supplying needed csv and json processing methods.
+    '''
     def __init__(self) -> None:
+        '''
+        Instantiate file processor.
+        '''
         print('Instantiating File Processor')
-        pass
 
     def get_text(self, input_file, as_list=False, delimiter=','):
+        '''
+        Take a given file by its directory name and return the text as either a list of strings or a string.
+        '''
         with open(input_file, 'r+', encoding='latin1') as csv_file:
             reader = csv.reader(csv_file, delimiter=delimiter)
             text_list = [str(line) for line in reader]
             return text_list if as_list else ' '.join(text_list)
         
     def dump_json(self, dictionary, output_file):
+        '''
+        Save an instance of a dictionary object to a given output file.
+        '''
         json_object = json.dumps(dictionary)
         with open(output_file, 'w', encoding='latin1') as json_file:
             json_file.write(json_object)
 
     def load_json(self, json_file):
+        '''
+        Load json file found at parameters json_file.
+        '''
         return json.load(json_file)
 
 class DataLoader():
+    '''
+    Load data from old files and save for future use.
+    '''
     def __init__(self) -> None:
+        '''
+        Process review, essay, and author data.
+        '''
+
         print('Instantiating Data Loader')
 
         # Processor Helper Classes
@@ -60,6 +90,9 @@ class DataLoader():
         self.document_data = self.generate_document_data() if not os.path.isfile(NEW_DOCUMENT_DATA) else self.fileprocessor.load_json(NEW_DOCUMENT_DATA)
 
     def generate_reviews(self):
+        '''
+        Generate reviews from old data store.
+        '''
         print('Generating Reviews')
         reviews = {}
         review_file_list = os.listdir(OLD_REVIEWS)
@@ -90,6 +123,10 @@ class DataLoader():
         self.fileprocessor.dump_json(reviews, NEW_REVIEWS)
         return reviews
     def generate_essays(self):
+        '''
+        Generate essays from old data store.
+        '''
+
         print('Generating Essays.')
         essays = {}
         essay_file_list = os.listdir(OLD_ESSAYS)
@@ -118,6 +155,9 @@ class DataLoader():
         self.fileprocessor(essays, NEW_ESSAYS)
         return essays
     def generate_author_data(self):
+        '''
+        Generate author data from old data store.
+        '''
         author_data = {}
         author_data_list = self.fileprocessor.get_text(OLD_AUTHOR_DATA, True)
         for line in author_data_list:
@@ -134,6 +174,10 @@ class DataLoader():
         return author_data
 
     def generate_document_data(self):
+        '''
+        Generate document data from old data store.
+        '''
+
         document_data = {}
         document_data_list = self.fileprocessor.get_text(OLD_DOCUMENT_DATA, True)
         for line in document_data_list:
