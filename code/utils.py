@@ -2,6 +2,7 @@ import os
 import csv
 import json
 import nltk
+import functools
 
 from tqdm import tqdm
 from constants import *
@@ -44,6 +45,7 @@ class FileProcessor():
         '''
         print('Instantiating File Processor')
 
+    @functools.lru_cache
     def get_text(self, input_file, as_list=False, delimiter=','):
         '''
         Take a given file by its directory name and return the text as either a list of strings or a string.
@@ -53,6 +55,7 @@ class FileProcessor():
             text_list = [str(line) for line in reader]
             return text_list if as_list else ' '.join(text_list)
         
+    @functools.lru_cache
     def dump_json(self, dictionary, output_file):
         '''
         Save an instance of a dictionary object to a given output file.
@@ -122,6 +125,7 @@ class DataLoader():
         
         self.fileprocessor.dump_json(reviews, NEW_REVIEWS)
         return reviews
+    
     def generate_essays(self):
         '''
         Generate essays from old data store.
@@ -154,6 +158,7 @@ class DataLoader():
         
         self.fileprocessor(essays, NEW_ESSAYS)
         return essays
+    
     def generate_author_data(self):
         '''
         Generate author data from old data store.
