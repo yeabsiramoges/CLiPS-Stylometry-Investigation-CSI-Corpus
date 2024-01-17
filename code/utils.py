@@ -1,4 +1,5 @@
 import os
+import re
 import csv
 import json
 import nltk
@@ -16,9 +17,7 @@ class Translator():
         '''
         Instantiate deep translator.
         '''
-        print(f'Instantiating Translator')
-        print(f'Source: {source}')
-        print(f'Target: {target}')
+        print(f'TRANSLATOR: Instantiated ({source}, {target}).')
 
         self.translator = GoogleTranslator(source=source, target=target)
 
@@ -26,14 +25,10 @@ class Translator():
         '''
         Process translation of text passed in.
         '''
-        try:
-            translation = []
-            for sentence in nltk.tokenize.sent_tokenize(text):
-                translation.append(self.translator.translate(sentence))
-            return ''.join(translation)
-        except:
-            print('Empty sequence.')
-            return ""
+        translation = []
+        for sentence in nltk.tokenize.sent_tokenize(text):
+            translation.append(self.translator.translate(sentence))
+        return ''.join(translation)
 
 class FileProcessor():
     '''
@@ -43,31 +38,31 @@ class FileProcessor():
         '''
         Instantiate file processor.
         '''
-        print('Instantiating File Processor')
+        print('FILE-PROCESSOR: Instantiated.')
 
     @functools.lru_cache
-    def get_text(self, input_file, as_list=False, delimiter=','):
+    def get_text(self, input_file, as_list=False):
         '''
         Take a given file by its directory name and return the text as either a list of strings or a string.
         '''
         with open(input_file, 'r+', encoding='latin1') as csv_file:
-            reader = csv.reader(csv_file, delimiter=delimiter)
+            reader = csv.reader(csv_file)
             text_list = [str(line) for line in reader]
             return text_list if as_list else ' '.join(text_list)
         
-    @functools.lru_cache
     def dump_json(self, dictionary, output_file):
         '''
         Save an instance of a dictionary object to a given output file.
         '''
-        json_object = json.dumps(dictionary)
-        with open(output_file, 'w', encoding='latin1') as json_file:
-            json_file.write(json_object)
+        with open(output_file, 'x', encoding='latin1') as json_file:
+            json.dump(dictionary, json_file)
 
-    def load_json(self, json_file):
+    @functools.lru_cache
+    def load_json(self, json_file_name):
         '''
         Load json file found at parameters json_file.
         '''
+        json_file = open(json_file_name)
         return json.load(json_file)
 
 class DataLoader():
@@ -79,7 +74,7 @@ class DataLoader():
         Process review, essay, and author data.
         '''
 
-        print('Instantiating Data Loader')
+        print('DATALOADER: Instantiated.')
 
         # Processor Helper Classes
         self.fileprocessor = FileProcessor()
@@ -99,12 +94,12 @@ class DataLoader():
         print('Generating Reviews')
         reviews = {}
         review_file_list = os.listdir(OLD_REVIEWS)
-        for index in tqdm(range(len(review_file_list))):
-            try:
+        for index in tqdm(range(1296, len(review_file_list))):
                 filename = review_file_list[index]
                 # Metadata
                 author_ID, genre, timestamp, veracity, sentiment = filename.split("_")
                 sentiment = sentiment.split('.')[0]
+                author_ID = self.extract(author_ID)
 
                 # Text
                 text = self.fileprocessor.get_text(OLD_REVIEWS + "/" + filename)
@@ -123,9 +118,7 @@ class DataLoader():
                     reviews[author_ID].append(new_review)
                 else:
                     reviews[author_ID] = [new_review]
-            except:
-                print('Unpacking issue at: ', index)
-        
+
         self.fileprocessor.dump_json(reviews, NEW_REVIEWS)
         return reviews
     
@@ -134,15 +127,14 @@ class DataLoader():
         Generate essays from old data store.
         '''
 
-        print('Generating Essays.')
+        print('Generating Essays')
         essays = {}
         essay_file_list = os.listdir(OLD_ESSAYS)
-        for index in tqdm(range(len(essay_file_list))):
-            try:
+        for index in tqdm(range(515, len(essay_file_list))):
                 filename = essay_file_list[index]
                 # Metadata
                 author_ID, genre, timestamp, = filename.split("_")
-                sentiment = sentiment.split('.')[0]
+                author_ID = self.extract(author_ID)
 
                 # Text
                 text = self.fileprocessor.get_text(OLD_ESSAYS + "/" + filename)
@@ -159,21 +151,20 @@ class DataLoader():
                     essays[author_ID].append(new_review)
                 else:
                     essays[author_ID] = [new_review]
-            except:
-                print('Unpacking issue at: ', index)
         
-        self.fileprocessor(essays, NEW_ESSAYS)
+        self.fileprocessor.dump_json(essays, NEW_ESSAYS)
         return essays
     
     def generate_author_data(self):
         '''
         Generate author data from old data store.
         '''
+        print('Generating Author Data')
         author_data = {}
         author_data_list = self.fileprocessor.get_text(OLD_AUTHOR_DATA, True)
         for line in author_data_list:
-            try:
-                author_id, dob, gender, sexual_perference, region, country, big_five, mbti = line.split(OLD_DATA_DELIMITER)
+                author_id, dob, gender, sexual_perference, region, country, big_five, mbti = line.split('\\t')
+                author_id = self.extract(author_id)
                 author_data[author_id] = {
                     'DOB':dob,
                     'Gender':gender,
@@ -183,31 +174,46 @@ class DataLoader():
                     'Big Five': big_five,
                     'MBTI': mbti
                 }
-            except:
-                print('Unpacking issue at: ', line)
+        self.fileprocessor.dump_json(author_data, NEW_AUTHOR_DATA)
         return author_data
 
     def generate_document_data(self):
         '''
         Generate document data from old data store.
         '''
-
+        print('Generating Document Data')
         document_data = {}
         document_data_list = self.fileprocessor.get_text(OLD_DOCUMENT_DATA, True)
         for line in document_data_list:
-            try:
-                filename, author_id, timestamp, genre, grade, sentiment, veracity, category, product, subject = line.split(OLD_DATA_DELIMITER)
+                filename, author_id, timestamp, genre, grade, sentiment, veracity, category, subject = line.split('\\t')
+                author_id = self.extract(author_id)
                 document_data[author_id] = {
-                'filename': filename,
-                'timestamp': timestamp,
-                'genre': genre,
-                'grade': grade,
-                'sentiment': sentiment,
-                'veracity': veracity,
-                'category': category,
-                'product': product,
-                'subject': subject
+                    'filename': filename,
+                    'timestamp': timestamp,
+                    'genre': genre,
+                    'grade': grade,
+                    'sentiment': sentiment,
+                    'veracity': veracity,
+                    'category': category,
+                    'subject': subject
                 }
-            except:
-                print('Unpacking issue at: ', line)
+        self.fileprocessor.dump_json(document_data, NEW_DOCUMENT_DATA)
         return document_data
+    
+    def get_data(self):
+         '''
+         Get processed data in dict.
+         '''
+         print('DATALOADER: Loading Data.')
+         return {
+              'reviews': self.reviews,
+              'essays': self.essays,
+              'author': self.author_data,
+              'document': self.document_data
+         }
+    
+    def extract(self, text):
+         '''
+         Extract digit from string.
+         '''
+         return ''.join(num for num in text if num.isdigit())
