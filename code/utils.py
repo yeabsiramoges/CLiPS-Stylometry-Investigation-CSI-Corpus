@@ -16,7 +16,7 @@ class Translator():
         '''
         Instantiate deep translator.
         '''
-        print(f'Translator Instance Instantiated.')
+        print(f'Instantiating Translator')
         print(f'Source: {source}')
         print(f'Target: {target}')
 
@@ -100,28 +100,31 @@ class DataLoader():
         reviews = {}
         review_file_list = os.listdir(OLD_REVIEWS)
         for index in tqdm(range(len(review_file_list))):
-            filename = review_file_list[index]
-            # Metadata
-            author_ID, genre, timestamp, veracity, sentiment = filename.split("_")
-            sentiment = sentiment.split('.')[0]
+            try:
+                filename = review_file_list[index]
+                # Metadata
+                author_ID, genre, timestamp, veracity, sentiment = filename.split("_")
+                sentiment = sentiment.split('.')[0]
 
-            # Text
-            text = self.fileprocessor.get_text(OLD_REVIEWS + "/" + filename)
+                # Text
+                text = self.fileprocessor.get_text(OLD_REVIEWS + "/" + filename)
 
-            # Bundling
-            new_review = {
-                'genre': genre,
-                'timestamp': timestamp,
-                'veracity': veracity,
-                'sentiment': sentiment,
-                'text': self.translator.get_translation(text)
-            }
+                # Bundling
+                new_review = {
+                    'genre': genre,
+                    'timestamp': timestamp,
+                    'veracity': veracity,
+                    'sentiment': sentiment,
+                    'text': self.translator.get_translation(text)
+                }
 
-            # Storage
-            if author_ID in reviews:
-                reviews[author_ID].append(new_review)
-            else:
-                reviews[author_ID] = [new_review]
+                # Storage
+                if author_ID in reviews:
+                    reviews[author_ID].append(new_review)
+                else:
+                    reviews[author_ID] = [new_review]
+            except:
+                print('Unpacking issue at: ', index)
         
         self.fileprocessor.dump_json(reviews, NEW_REVIEWS)
         return reviews
@@ -135,26 +138,29 @@ class DataLoader():
         essays = {}
         essay_file_list = os.listdir(OLD_ESSAYS)
         for index in tqdm(range(len(essay_file_list))):
-            filename = essay_file_list[index]
-            # Metadata
-            author_ID, genre, timestamp, = filename.split("_")
-            sentiment = sentiment.split('.')[0]
+            try:
+                filename = essay_file_list[index]
+                # Metadata
+                author_ID, genre, timestamp, = filename.split("_")
+                sentiment = sentiment.split('.')[0]
 
-            # Text
-            text = self.fileprocessor.get_text(OLD_ESSAYS + "/" + filename)
+                # Text
+                text = self.fileprocessor.get_text(OLD_ESSAYS + "/" + filename)
 
-            # Bundling
-            new_review = {
-                'genre': genre,
-                'timestamp': timestamp,
-                'text': self.translator.get_translation(text)
-            }
+                # Bundling
+                new_review = {
+                    'genre': genre,
+                    'timestamp': timestamp,
+                    'text': self.translator.get_translation(text)
+                }
 
-            # Storage
-            if author_ID in essays:
-                essays[author_ID].append(new_review)
-            else:
-                essays[author_ID] = [new_review]
+                # Storage
+                if author_ID in essays:
+                    essays[author_ID].append(new_review)
+                else:
+                    essays[author_ID] = [new_review]
+            except:
+                print('Unpacking issue at: ', index)
         
         self.fileprocessor(essays, NEW_ESSAYS)
         return essays
@@ -166,16 +172,19 @@ class DataLoader():
         author_data = {}
         author_data_list = self.fileprocessor.get_text(OLD_AUTHOR_DATA, True)
         for line in author_data_list:
-            author_id, dob, gender, sexual_perference, region, country, big_five, mbti = line.split(OLD_DATA_DELIMITER)
-            author_data[author_id] = {
-                'DOB':dob,
-                'Gender':gender,
-                'Sexual Perference': sexual_perference,
-                'Region': region,
-                'Country': country,
-                'Big Five': big_five,
-                'MBTI': mbti
-            }
+            try:
+                author_id, dob, gender, sexual_perference, region, country, big_five, mbti = line.split(OLD_DATA_DELIMITER)
+                author_data[author_id] = {
+                    'DOB':dob,
+                    'Gender':gender,
+                    'Sexual Perference': sexual_perference,
+                    'Region': region,
+                    'Country': country,
+                    'Big Five': big_five,
+                    'MBTI': mbti
+                }
+            except:
+                print('Unpacking issue at: ', line)
         return author_data
 
     def generate_document_data(self):
@@ -186,16 +195,19 @@ class DataLoader():
         document_data = {}
         document_data_list = self.fileprocessor.get_text(OLD_DOCUMENT_DATA, True)
         for line in document_data_list:
-            filename, author_id, timestamp, genre, grade, sentiment, veracity, category, product, subject = line.split(OLD_DATA_DELIMITER)
-            document_data[author_id] = {
-               'filename': filename,
-               'timestamp': timestamp,
-               'genre': genre,
-               'grade': grade,
-               'sentiment': sentiment,
-               'veracity': veracity,
-               'category': category,
-               'product': product,
-               'subject': subject
-            }
+            try:
+                filename, author_id, timestamp, genre, grade, sentiment, veracity, category, product, subject = line.split(OLD_DATA_DELIMITER)
+                document_data[author_id] = {
+                'filename': filename,
+                'timestamp': timestamp,
+                'genre': genre,
+                'grade': grade,
+                'sentiment': sentiment,
+                'veracity': veracity,
+                'category': category,
+                'product': product,
+                'subject': subject
+                }
+            except:
+                print('Unpacking issue at: ', line)
         return document_data

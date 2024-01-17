@@ -1,6 +1,8 @@
+# Translator
 DANISH_CODE='de'
 ENGLISH_CODE='en'
 
+# File Processor
 OLD_REVIEWS='../old-data/reviews'
 OLD_ESSAYS='../old-data/essays'
 
