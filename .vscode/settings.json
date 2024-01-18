@@ -1,5 +1,7 @@
 {
     "python.analysis.extraPaths": [
-        "./code/utilities"
+        "./code/utilities",
+        "./code/helper",
+        "./code/helper/openreview-py"
     ]
 }
